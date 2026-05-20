@@ -79,7 +79,10 @@ jobs:
     
     updatek8s:
         runs-on: ubuntu-latest
-
+        
+        permissions: 
+           contents: write
+           
         needs: docker
 
         steps:
