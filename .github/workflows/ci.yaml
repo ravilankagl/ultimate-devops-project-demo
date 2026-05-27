@@ -4,6 +4,9 @@ name: product-catalog-ci
 
 on: 
     pull_request:
+      branches:
+      - main
+    push:
         branches:
         - main
 
@@ -77,12 +80,14 @@ jobs:
             tags: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{github.run_id}}
 
     
-    updatek8s:
-        runs-on: ubuntu-latest
+    Updatek8s:
+      runs-on: ubuntu-latest
+      if: github.event_name == 'push'    #only runs after merge
+      needs: docker
+      permissions:
+        contents: write
 
-        needs: docker
-
-        steps:
+      steps:
         - name: checkout code
           uses: actions/checkout@v4
           with:
@@ -90,8 +95,7 @@ jobs:
 
         - name: Update tag in kubernetes deployment manifest
           run: | 
-               sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{github.run_id}}|" kubernetes/productcatalog/deploy.yaml
-        
+               sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{github.run_id}}|" kubernetes/productcatalog/deploy.yaml               
         - name: Commit and push changes
           run: |
             git config --global user.email "ravilankagl@gmail.com"
